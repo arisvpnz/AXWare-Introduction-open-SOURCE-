@@ -3,159 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <title>AXWare — The Future</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Rajdhani',sans-serif;}
-canvas{position:fixed;inset:0;z-index:1;}
-#ui{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;cursor:none;}
+
+/* CANVAS STACK */
+#c-nebula{position:fixed;inset:0;z-index:1;}
+#c-main{position:fixed;inset:0;z-index:2;}
+#c-fx{position:fixed;inset:0;z-index:3;pointer-events:none;}
+#c-ui{position:fixed;inset:0;z-index:4;pointer-events:none;}
+
+/* FILM GRAIN */
+#grain{
+  position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain-shift 0.08s steps(1) infinite;
+}
+@keyframes grain-shift{
+  0%{transform:translate(0,0);}25%{transform:translate(-2%,-3%);}
+  50%{transform:translate(3%,1%);}75%{transform:translate(-1%,4%);}100%{transform:translate(2%,-2%);}
+}
 
 /* SCANLINES */
-#scanlines{position:fixed;inset:0;z-index:50;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
-  opacity:0;transition:opacity 1s;}
+#scanlines{
+  position:fixed;inset:0;z-index:89;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  opacity:0;transition:opacity 2s;
+}
 
 /* VIGNETTE */
-#vignette{position:fixed;inset:0;z-index:49;pointer-events:none;
-  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.85) 100%);
-  opacity:0;transition:opacity 2s;}
-
-/* FLASH OVERLAY */
-#flash{position:fixed;inset:0;z-index:60;pointer-events:none;background:#fff;opacity:0;}
-
-/* RED OVERLAY */
-#redflash{position:fixed;inset:0;z-index:58;pointer-events:none;background:#ff0000;opacity:0;}
-
-/* SHAKE */
-body.shake{animation:shake 0.4s ease;}
-@keyframes shake{
-  0%,100%{transform:translate(0,0);}
-  15%{transform:translate(-8px,5px);}
-  30%{transform:translate(7px,-6px);}
-  45%{transform:translate(-5px,8px);}
-  60%{transform:translate(9px,-4px);}
-  75%{transform:translate(-7px,6px);}
-  90%{transform:translate(5px,-3px);}
+#vignette{
+  position:fixed;inset:0;z-index:88;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.9) 100%);
+  opacity:0;transition:opacity 3s;
 }
 
-/* ── CORNER BRACKETS ── */
-.bracket{position:fixed;width:50px;height:50px;z-index:45;opacity:0;transition:opacity 0.5s;}
-.bracket.tl{top:20px;left:20px;border-top:2px solid rgba(255,255,255,0.4);border-left:2px solid rgba(255,255,255,0.4);}
-.bracket.tr{top:20px;right:20px;border-top:2px solid rgba(255,255,255,0.4);border-right:2px solid rgba(255,255,255,0.4);}
-.bracket.bl{bottom:20px;left:20px;border-bottom:2px solid rgba(255,255,255,0.4);border-left:2px solid rgba(255,255,255,0.4);}
-.bracket.br{bottom:20px;right:20px;border-bottom:2px solid rgba(255,255,255,0.4);border-right:2px solid rgba(255,255,255,0.4);}
+/* LETTERBOX */
+#lbox-t,#lbox-b{
+  position:fixed;left:0;right:0;height:0;background:#000;z-index:85;
+  transition:height 1.5s cubic-bezier(0.22,1,0.36,1);
+}
+#lbox-t{top:0;}#lbox-b{bottom:0;}
 
-/* ── LOGO ── */
+/* FLASH */
+#flash{position:fixed;inset:0;z-index:92;pointer-events:none;background:#fff;opacity:0;}
+#redflash{position:fixed;inset:0;z-index:91;pointer-events:none;background:#ff0000;opacity:0;}
+
+/* CHROMATIC */
+#chrom{position:fixed;inset:0;z-index:87;pointer-events:none;opacity:0;mix-blend-mode:screen;
+  background:linear-gradient(90deg,rgba(255,0,0,0.03) 0%,transparent 40%,transparent 60%,rgba(0,0,255,0.03) 100%);}
+
+/* UI LAYER */
+#ui{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;pointer-events:none;}
+
+/* CORNER BRACKETS */
+.bracket{position:fixed;width:55px;height:55px;z-index:82;opacity:0;transition:opacity 0.3s,transform 0.6s cubic-bezier(0.16,1,0.3,1);}
+.bracket.tl{top:22px;left:22px;border-top:1px solid rgba(255,255,255,0.5);border-left:1px solid rgba(255,255,255,0.5);transform:translate(-10px,-10px);}
+.bracket.tr{top:22px;right:22px;border-top:1px solid rgba(255,255,255,0.5);border-right:1px solid rgba(255,255,255,0.5);transform:translate(10px,-10px);}
+.bracket.bl{bottom:22px;left:22px;border-bottom:1px solid rgba(255,255,255,0.5);border-left:1px solid rgba(255,255,255,0.5);transform:translate(-10px,10px);}
+.bracket.br{bottom:22px;right:22px;border-bottom:1px solid rgba(255,255,255,0.5);border-right:1px solid rgba(255,255,255,0.5);transform:translate(10px,10px);}
+.bracket.show{opacity:1;transform:translate(0,0);}
+
+/* LOGO */
 #logo{
   font-family:'Orbitron',sans-serif;font-weight:900;
-  font-size:clamp(3rem,10vw,8rem);
-  letter-spacing:0.1em;color:#fff;
-  text-align:center;
-  opacity:0;transform:scale(0.05);
-  transition:none;
-  text-shadow:0 0 60px rgba(255,255,255,0.8),0 0 120px rgba(255,255,255,0.4);
-  position:relative;
+  font-size:clamp(2.5rem,9vw,7.5rem);letter-spacing:0.08em;
+  color:#fff;text-align:center;
+  opacity:0;transform:scale(0.02) translateY(0px);
+  transition:opacity 0.01s,transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  text-shadow:0 0 40px rgba(255,255,255,0.9),0 0 80px rgba(255,255,255,0.5),0 0 160px rgba(255,255,255,0.2);
+  position:relative;z-index:1;line-height:1;
 }
-#logo .ax{display:inline-block;}
-#logo .ware{display:inline-block;color:rgba(255,255,255,0.6);}
+#logo-sub{
+  font-family:'Rajdhani',sans-serif;font-weight:300;
+  font-size:clamp(0.5rem,1.2vw,0.8rem);letter-spacing:0.6em;
+  color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;
+  opacity:0;transition:opacity 1s;text-transform:uppercase;
+}
 
-/* ── TAGLINE ── */
+/* TAGLINE */
 #tagline{
   font-family:'Orbitron',sans-serif;font-weight:700;
-  font-size:clamp(0.7rem,1.8vw,1.1rem);
-  letter-spacing:0.3em;color:#e0e0e0;
-  text-align:center;margin-top:20px;
-  opacity:0;max-width:90vw;line-height:1.8;
+  font-size:clamp(0.65rem,1.6vw,1rem);letter-spacing:0.25em;
+  color:#e8e8e8;text-align:center;margin-top:22px;
+  opacity:0;transition:opacity 0.5s;
   text-shadow:0 0 20px rgba(255,255,255,0.3);
+  max-width:88vw;line-height:1.9;min-height:2.5em;
 }
-#tagline-cursor{display:inline-block;width:2px;height:1em;background:#fff;vertical-align:middle;margin-left:2px;animation:blink 0.5s step-end infinite;}
 
-/* ── CODE BLOCK ── */
+/* DIVIDER LINE */
+#divider{
+  width:0;height:1px;margin:18px auto;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
+  transition:width 1.2s cubic-bezier(0.22,1,0.36,1);
+}
+
+/* CODE BLOCK */
 #codeWrap{
-  margin-top:28px;width:min(700px,92vw);
-  background:rgba(5,5,5,0.95);
-  border:1px solid #1e1e1e;border-left:3px solid #3a3a3a;
-  border-radius:3px;padding:22px 28px;
-  opacity:0;transform:translateY(20px);
-  transition:opacity 0.4s,transform 0.4s;
-  position:relative;overflow:hidden;
+  width:min(720px,92vw);max-height:38vh;overflow:hidden;
+  background:rgba(4,4,6,0.97);
+  border:1px solid #161618;border-left:2px solid #2a2a30;
+  border-radius:2px;padding:20px 26px;
+  opacity:0;transform:translateY(24px);
+  transition:opacity 0.5s,transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
 }
-#codeWrap::before{content:'AXWare.lua';position:absolute;top:8px;right:14px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:#3a3a3a;letter-spacing:0.1em;}
-#code{font-family:'Share Tech Mono',monospace;font-size:clamp(0.6rem,1.3vw,0.82rem);line-height:1.9;color:#999;white-space:pre;}
-#code-cursor{display:inline-block;width:2px;height:1em;background:#555;vertical-align:middle;margin-left:1px;animation:blink 0.45s step-end infinite;}
-.kw{color:#79b8ff;}.fn{color:#b5e853;}.st{color:#f0e68c;}.cm{color:#3d5060;}.nu{color:#c792ea;}.op{color:#89ddff;}
+#codeWrap::before{
+  content:'AXWare.lua — STEAL A BRAINROT ENGINE';
+  position:absolute;top:0;left:0;right:0;padding:6px 14px;
+  font-family:'Share Tech Mono',monospace;font-size:0.65rem;
+  color:#2a2a2a;letter-spacing:0.15em;
+  border-bottom:1px solid #111;
+  background:rgba(8,8,10,0.8);
+}
+#code{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(0.58rem,1.2vw,0.78rem);
+  line-height:1.85;color:#7a7a88;white-space:pre;
+  margin-top:14px;
+}
+.kw{color:#79b8ff;}.fn{color:#b5e853;}.st{color:#f0e68c;}
+.cm{color:#2d3f4a;}.nu{color:#c792ea;}.op{color:#89ddff;}.ty{color:#ffcb6b;}
 
-/* ── DATE LINE ── */
+/* DATE LINE */
 #dateLine{
   font-family:'Orbitron',sans-serif;font-weight:900;
-  font-size:clamp(1rem,3vw,1.8rem);
-  color:#ff1111;text-align:center;
-  margin-top:36px;letter-spacing:0.2em;
-  opacity:0;line-height:1.5;
-  text-shadow:0 0 30px rgba(255,0,0,0.7),0 0 60px rgba(255,0,0,0.3);
-  max-width:90vw;
+  font-size:clamp(0.9rem,2.8vw,1.7rem);
+  color:#ff1111;text-align:center;margin-top:32px;
+  letter-spacing:0.18em;opacity:0;transition:opacity 0.4s;
+  text-shadow:0 0 30px rgba(255,0,0,0.8),0 0 70px rgba(255,0,0,0.4);
+  max-width:88vw;line-height:1.6;
+  animation:none;
 }
-#date-cursor{display:inline-block;width:2px;height:1em;background:#ff1111;vertical-align:middle;margin-left:2px;animation:blink 0.5s step-end infinite;}
+@keyframes redPulse{
+  0%,100%{text-shadow:0 0 30px rgba(255,0,0,0.8),0 0 70px rgba(255,0,0,0.4);}
+  50%{text-shadow:0 0 60px #ff0000,0 0 120px rgba(255,0,0,0.6),0 0 200px rgba(255,30,30,0.2);}
+}
 
-/* ── CREDIT ── */
+/* CREDIT */
 #credit{
-  font-family:'Rajdhani',sans-serif;font-weight:300;
-  font-size:clamp(0.85rem,1.8vw,1.1rem);
-  color:rgba(255,255,255,0.45);text-align:center;
-  margin-top:24px;letter-spacing:0.15em;
-  opacity:0;line-height:1.8;
+  font-family:'Rajdhani',sans-serif;font-weight:400;
+  font-size:clamp(0.8rem,1.6vw,1.05rem);
+  color:rgba(255,255,255,0.4);text-align:center;
+  margin-top:22px;letter-spacing:0.18em;
+  opacity:0;transition:opacity 1.5s;line-height:2;
 }
-#credit em{color:rgba(255,255,255,0.9);font-style:normal;font-weight:600;}
+#credit em{color:rgba(255,255,255,0.9);font-style:normal;font-weight:700;}
 
-/* ── DIVIDER ── */
-#divider{width:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);margin:16px auto;transition:width 1s ease;}
+/* PROGRESS */
+#prog{position:fixed;bottom:0;left:0;height:1px;background:rgba(255,255,255,0.12);z-index:86;transition:width 0.15s linear;}
 
-/* ── STATUS BAR ── */
-#statusBar{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  font-family:'Share Tech Mono',monospace;font-size:0.65rem;
-  color:rgba(255,255,255,0.2);letter-spacing:0.2em;
-  z-index:45;opacity:0;transition:opacity 0.5s;
+/* STATUS */
+#status{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  font-family:'Share Tech Mono',monospace;font-size:0.62rem;
+  color:rgba(255,255,255,0.18);letter-spacing:0.25em;z-index:86;
+  opacity:0;transition:opacity 0.5s;white-space:nowrap;
 }
+
+/* HEX READOUT SIDES */
+#hexL,#hexR{
+  position:fixed;top:50%;transform:translateY(-50%);
+  font-family:'Share Tech Mono',monospace;font-size:0.5rem;
+  color:rgba(255,255,255,0.07);letter-spacing:0.1em;line-height:1.8;
+  z-index:81;opacity:0;transition:opacity 1s;
+  width:80px;overflow:hidden;
+}
+#hexL{left:10px;text-align:left;}
+#hexR{right:10px;text-align:right;}
+
+/* CIRCUIT CANVAS */
+#c-circuit{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity 1s;}
+
+/* WARNING OVERLAY */
+#warnOverlay{position:fixed;inset:0;z-index:83;pointer-events:none;
+  border:0px solid rgba(255,0,0,0.5);
+  box-shadow:inset 0 0 0px rgba(255,0,0,0);
+  transition:border-width 0.3s,box-shadow 0.5s;}
 
 /* BLINK */
 @keyframes blink{50%{opacity:0;}}
+.cur{display:inline-block;width:2px;height:1em;background:#fff;vertical-align:middle;margin-left:2px;animation:blink 0.55s step-end infinite;}
+.cur-r{display:inline-block;width:2px;height:1em;background:#ff1111;vertical-align:middle;margin-left:2px;animation:blink 0.55s step-end infinite;}
+.cur-c{display:inline-block;width:2px;height:0.9em;background:#444;vertical-align:middle;margin-left:1px;animation:blink 0.45s step-end infinite;}
 
-/* GLITCH on logo */
-@keyframes glitch1{
-  0%,100%{clip-path:none;transform:none;}
-  33%{clip-path:polygon(0 15%,100% 15%,100% 30%,0 30%);transform:translateX(-6px);}
-  66%{clip-path:polygon(0 70%,100% 70%,100% 80%,0 80%);transform:translateX(6px);}
-}
-@keyframes glitch2{
-  0%,100%{clip-path:none;transform:none;opacity:1;}
-  33%{clip-path:polygon(0 40%,100% 40%,100% 55%,0 55%);transform:translateX(8px);opacity:0.8;}
-  66%{clip-path:polygon(0 5%,100% 5%,100% 18%,0 18%);transform:translateX(-5px);}
-}
-.glitch-active{animation:glitch1 0.15s steps(1) 3, glitch2 0.15s steps(1) 3 0.07s !important;}
-
-/* RED PULSE */
-@keyframes redPulse{
-  0%,100%{text-shadow:0 0 30px rgba(255,0,0,0.7),0 0 60px rgba(255,0,0,0.3);}
-  50%{text-shadow:0 0 50px rgba(255,0,0,1),0 0 100px rgba(255,0,0,0.5),0 0 150px rgba(255,0,0,0.2);}
+/* WARNING BANNER */
+#warnBanner{
+  position:fixed;top:0;left:0;right:0;
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:0.65rem;letter-spacing:0.5em;
+  color:rgba(255,0,0,0.7);text-align:center;padding:8px;
+  z-index:84;opacity:0;transition:opacity 0.5s;
+  border-bottom:1px solid rgba(255,0,0,0.15);
 }
 
-/* PROGRESS BAR */
-#progressBar{position:fixed;bottom:0;left:0;height:2px;background:rgba(255,255,255,0.15);z-index:55;transition:width linear;}
-
-/* MATRIX OVERLAY */
-#matrixOverlay{position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;}
+/* GLITCH ANIM */
+@keyframes glitchA{
+  0%,100%{clip-path:none;transform:skewX(0deg);}
+  10%{clip-path:polygon(0 8%,100% 8%,100% 22%,0 22%);transform:skewX(-3deg) translateX(-8px);}
+  20%{clip-path:polygon(0 55%,100% 55%,100% 70%,0 70%);transform:skewX(3deg) translateX(6px);}
+  30%{clip-path:none;transform:skewX(0);}
+}
+@keyframes glitchB{
+  0%,100%{clip-path:none;transform:translateX(0);}
+  10%{clip-path:polygon(0 30%,100% 30%,100% 50%,0 50%);transform:translateX(6px);}
+  20%{clip-path:polygon(0 70%,100% 70%,100% 85%,0 85%);transform:translateX(-4px);}
+  30%{clip-path:none;}
+}
+.glitching{animation:glitchA 0.18s steps(2) 4, glitchB 0.18s steps(2) 4 0.09s !important;}
 </style>
 </head>
 <body>
 
-<canvas id="c"></canvas>
-<canvas id="matrixOverlay"></canvas>
+<canvas id="c-nebula"></canvas>
+<canvas id="c-main"></canvas>
+<canvas id="c-circuit"></canvas>
+<canvas id="c-fx"></canvas>
+
 <div id="scanlines"></div>
 <div id="vignette"></div>
+<div id="grain"></div>
+<div id="lbox-t"></div>
+<div id="lbox-b"></div>
 <div id="flash"></div>
 <div id="redflash"></div>
+<div id="chrom"></div>
+<div id="warnOverlay"></div>
+<div id="warnBanner">⚠ CLASSIFIED — AXWARE TRANSMISSION INCOMING ⚠</div>
 
 <div class="bracket tl" id="bTL"></div>
 <div class="bracket tr" id="bTR"></div>
@@ -163,7 +238,8 @@ body.shake{animation:shake 0.4s ease;}
 <div class="bracket br" id="bBR"></div>
 
 <div id="ui">
-  <div id="logo"><span class="ax">AX</span><span class="ware">Ware</span></div>
+  <div id="logo">AX<span style="color:rgba(255,255,255,0.55)">Ware</span></div>
+  <div id="logo-sub">steal a brainrot enhanced framework</div>
   <div id="tagline"></div>
   <div id="divider"></div>
   <div id="codeWrap"><div id="code"></div></div>
@@ -171,573 +247,982 @@ body.shake{animation:shake 0.4s ease;}
   <div id="credit"></div>
 </div>
 
-<div id="statusBar">AXWARE SYSTEMS — INITIALIZING</div>
-<div id="progressBar" style="width:0"></div>
+<div id="hexL"></div>
+<div id="hexR"></div>
+<div id="status"></div>
+<div id="prog" style="width:0"></div>
 
 <script>
 'use strict';
-// ═══════════════════════════════════════════
-//  AUDIO ENGINE
-// ═══════════════════════════════════════════
-let AC;
-function initAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();}
-document.addEventListener('click',initAC,{once:true});
-setTimeout(initAC,100);
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const W=()=>window.innerWidth, H=()=>window.innerHeight;
 
-function noise(dur=0.05,freq=120,vol=0.15,type='sawtooth'){
+// ═══════════════════════════════════════════════════════════
+//  AUDIO ENGINE
+// ═══════════════════════════════════════════════════════════
+let AC;
+const ensureAC=()=>{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();}};
+document.addEventListener('click',ensureAC,{once:true});
+setTimeout(ensureAC,200);
+
+function osc(freq,type='sine',dur=0.1,vol=0.1,startFreq=null,endFreq=null){
   if(!AC)return;
-  const o=AC.createOscillator(),g=AC.createGain();
-  o.connect(g);g.connect(AC.destination);
-  o.type=type;o.frequency.value=freq+Math.random()*80;
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type=type;
+  o.frequency.setValueAtTime(startFreq||freq,AC.currentTime);
+  if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,AC.currentTime+dur);
   g.gain.setValueAtTime(vol,AC.currentTime);
   g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+dur);
-  o.start();o.stop(AC.currentTime+dur);
+  o.start(); o.stop(AC.currentTime+dur);
 }
-function click(){noise(0.035,700+Math.random()*400,0.04,'square');}
-function deepBoom(){
+function click(vol=0.04){osc(rnd(600,1100),'square',0.04,vol);}
+function zap(){osc(1400,'sawtooth',0.14,0.18,1400,150);}
+function boom(){
   if(!AC)return;
-  [30,50,80,120,200].forEach((f,i)=>{
+  [25,40,60,90,140].forEach((f,i)=>{
     setTimeout(()=>{
-      const o=AC.createOscillator(),g=AC.createGain();
-      o.connect(g);g.connect(AC.destination);
-      o.type='sine';o.frequency.setValueAtTime(f,AC.currentTime);
-      o.frequency.exponentialRampToValueAtTime(10,AC.currentTime+1.5);
-      g.gain.setValueAtTime(0.3/(i+1),AC.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+1.5);
-      o.start();o.stop(AC.currentTime+1.5);
-    },i*60);
+      osc(f,'sine',1.8,0.35/(i+1),f,8);
+      if(i===0){
+        const buf=AC.createBuffer(1,AC.sampleRate*0.3,AC.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*Math.exp(-j/(AC.sampleRate*0.04));
+        const s=AC.createBufferSource(),g=AC.createGain();
+        s.buffer=buf; s.connect(g); g.connect(AC.destination);
+        g.gain.value=0.7; s.start();
+      }
+    },i*50);
   });
 }
-function zap(){
+function drone(freq=40,dur=4,vol=0.05){osc(freq,'sine',dur,vol);}
+function impact(v=0.5){
   if(!AC)return;
-  const o=AC.createOscillator(),g=AC.createGain();
-  o.connect(g);g.connect(AC.destination);
-  o.type='sawtooth';
-  o.frequency.setValueAtTime(1200,AC.currentTime);
-  o.frequency.exponentialRampToValueAtTime(200,AC.currentTime+0.12);
-  g.gain.setValueAtTime(0.2,AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+0.12);
-  o.start();o.stop(AC.currentTime+0.12);
-}
-function impact(){
-  if(!AC)return;
-  const buf=AC.createBuffer(1,AC.sampleRate*0.2,AC.sampleRate);
+  const buf=AC.createBuffer(1,AC.sampleRate*0.25,AC.sampleRate);
   const d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(AC.sampleRate*0.05));
-  const src=AC.createBufferSource(),g=AC.createGain();
-  src.buffer=buf;src.connect(g);g.connect(AC.destination);
-  g.gain.value=0.6;src.start();
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(AC.sampleRate*0.06));
+  const s=AC.createBufferSource(),g=AC.createGain();
+  s.buffer=buf;s.connect(g);g.connect(AC.destination);
+  g.gain.value=v;s.start();
 }
-function hum(freq=60,vol=0.05){
+function electricHum(){
   if(!AC)return;
-  const o=AC.createOscillator(),g=AC.createGain();
+  const o=AC.createOscillator(),lfo=AC.createOscillator(),lfoG=AC.createGain(),g=AC.createGain();
+  lfo.frequency.value=8;lfoG.gain.value=20;
+  lfo.connect(lfoG);lfoG.connect(o.frequency);
   o.connect(g);g.connect(AC.destination);
-  o.type='sine';o.frequency.value=freq;
-  g.gain.setValueAtTime(vol,AC.currentTime);
+  o.type='sawtooth';o.frequency.value=80;
+  g.gain.setValueAtTime(0.06,AC.currentTime);
   g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+3);
-  o.start();o.stop(AC.currentTime+3);
+  lfo.start();o.start();o.stop(AC.currentTime+3);lfo.stop(AC.currentTime+3);
+}
+function chime(freq=880){
+  if(!AC)return;
+  osc(freq,'sine',1.5,0.12,freq,freq*0.5);
+  osc(freq*1.5,'sine',0.8,0.06);
 }
 
-// ═══════════════════════════════════════════
-//  CANVAS & PARTICLES
-// ═══════════════════════════════════════════
-const canvas=document.getElementById('c');
-const ctx=canvas.getContext('2d');
-const mCanvas=document.getElementById('matrixOverlay');
-const mCtx=mCanvas.getContext('2d');
+// ═══════════════════════════════════════════════════════════
+//  CANVAS SETUP
+// ═══════════════════════════════════════════════════════════
+const nebCvs=$('c-nebula'), nebCtx=nebCvs.getContext('2d');
+const cvs=$('c-main'), ctx=cvs.getContext('2d');
+const fxCvs=$('c-fx'), fxCtx=fxCvs.getContext('2d');
+const cirCvs=$('c-circuit'), cirCtx=cirCvs.getContext('2d');
 
 function resize(){
-  canvas.width=mCanvas.width=window.innerWidth;
-  canvas.height=mCanvas.height=window.innerHeight;
+  [nebCvs,cvs,fxCvs,cirCvs].forEach(c=>{c.width=W();c.height=H();});
 }
 resize();
-window.addEventListener('resize',resize);
+window.addEventListener('resize',()=>{resize();initStars();initMatrix();});
 
-const CX=()=>canvas.width/2;
-const CY=()=>canvas.height/2;
+// ═══════════════════════════════════════════════════════════
+//  STAR FIELD (3 layers)
+// ═══════════════════════════════════════════════════════════
+let stars=[];
+function initStars(){
+  stars=[];
+  for(let i=0;i<500;i++){
+    const layer=Math.floor(Math.random()*3);
+    stars.push({
+      x:Math.random()*W(),y:Math.random()*H(),
+      r:layer===0?rnd(0.3,0.8):layer===1?rnd(0.5,1.2):rnd(0.8,1.8),
+      a:rnd(0.1,0.7),tw:rnd(1.5,6),ph:Math.random()*Math.PI*2,
+      layer,px:rnd(-0.02,0.02),py:rnd(-0.01,0.01),
+      born:Math.random()*4000
+    });
+  }
+}
+initStars();
+let camX=0,camY=0;
 
-// Particle pool
-let particles=[];
-class P{
-  constructor(x,y,vx,vy,life,size,r,g,b,a=1,gravity=0,fade=true){
-    Object.assign(this,{x,y,vx,vy,life,maxLife:life,size,r,g,b,a,gravity,fade});
+function drawStars(T){
+  stars.forEach(s=>{
+    if(T*1000<s.born)return;
+    const age=Math.min(1,(T*1000-s.born)/1500);
+    const tw=0.5+0.5*Math.sin(T/s.tw+s.ph);
+    const ax=s.x+camX*(s.layer+1)*0.5;
+    const ay=s.y+camY*(s.layer+1)*0.3;
+    ctx.globalAlpha=s.a*age*(0.5+0.5*tw);
+    ctx.fillStyle='#fff';
+    ctx.beginPath();
+    ctx.arc(((ax%W())+W())%W(),((ay%H())+H())%H(),s.r,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NEBULA (animated Perlin-style noise)
+// ═══════════════════════════════════════════════════════════
+let nebulaOpacity=0;
+const nebulaColors=[
+  [40,20,80],[80,20,50],[20,40,80],[60,30,70],[30,50,90]
+];
+
+function drawNebula(T){
+  if(nebulaOpacity<=0.001)return;
+  nebCtx.clearRect(0,0,W(),H());
+  const t=T*0.15;
+  nebulaColors.forEach((col,i)=>{
+    const ox=Math.sin(t*0.7+i*1.3)*W()*0.25;
+    const oy=Math.cos(t*0.5+i*1.7)*H()*0.2;
+    const rx=W()*(0.3+0.35*((i*0.37+0.1)%1));
+    const ry=H()*(0.25+0.3*((i*0.61+0.2)%1));
+    const grd=nebCtx.createRadialGradient(W()/2+ox,H()/2+oy,0,W()/2+ox,H()/2+oy,Math.max(rx,ry));
+    grd.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},${0.06*nebulaOpacity})`);
+    grd.addColorStop(0.5,`rgba(${col[0]},${col[1]},${col[2]},${0.03*nebulaOpacity})`);
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    nebCtx.beginPath();nebCtx.ellipse(W()/2+ox,H()/2+oy,rx,ry,i*0.4,0,Math.PI*2);
+    nebCtx.fillStyle=grd;nebCtx.fill();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PARTICLE SYSTEM
+// ═══════════════════════════════════════════════════════════
+let parts=[];
+class Particle{
+  constructor(x,y,vx,vy,life,size,r,g,b,a=1,grav=0,drag=1,glow=false){
+    Object.assign(this,{x,y,vx,vy,life,maxLife:life,size,r,g,b,a,baseA:a,grav,drag,glow});
   }
   update(dt){
+    this.vx*=Math.pow(this.drag,dt*60);
+    this.vy*=Math.pow(this.drag,dt*60);
     this.x+=this.vx*dt;this.y+=this.vy*dt;
-    this.vy+=this.gravity*dt;
+    this.vy+=this.grav*dt;
     this.life-=dt;
-    if(this.fade)this.a=(this.life/this.maxLife);
+    this.a=this.baseA*(this.life/this.maxLife);
     return this.life>0;
   }
   draw(c){
-    c.save();c.globalAlpha=Math.max(0,this.a);
+    if(this.a<=0)return;
+    c.save();
+    c.globalAlpha=clamp(this.a,0,1);
+    if(this.glow){
+      c.shadowColor=`rgb(${this.r},${this.g},${this.b})`;
+      c.shadowBlur=this.size*4;
+    }
     c.beginPath();
-    c.arc(this.x,this.y,Math.max(0.1,this.size*(this.fade?0.5+0.5*this.life/this.maxLife:1)),0,Math.PI*2);
+    c.arc(this.x,this.y,Math.max(0.1,this.size*(0.4+0.6*this.life/this.maxLife)),0,Math.PI*2);
     c.fillStyle=`rgb(${this.r},${this.g},${this.b})`;c.fill();
     c.restore();
   }
 }
 
-// Star background
-let stars=[];
-function initStars(){
-  stars=[];
-  for(let i=0;i<280;i++){
-    stars.push({
-      x:Math.random()*canvas.width,
-      y:Math.random()*canvas.height,
-      r:Math.random()*1.2,
-      a:Math.random()*0.6+0.1,
-      tw:Math.random()*3+1,
-      phase:Math.random()*Math.PI*2,
-      born:Math.random()*3000
-    });
-  }
-}
-initStars();
+// ═══════════════════════════════════════════════════════════
+//  SHOCKWAVES
+// ═══════════════════════════════════════════════════════════
+let shocks=[];
 
-function drawStars(t){
-  stars.forEach(s=>{
-    if(t*1000<s.born)return;
-    const age=(t*1000-s.born)/1000;
-    const vis=Math.min(1,age*2);
-    const tw=0.5+0.5*Math.sin(t/s.tw+s.phase);
-    ctx.globalAlpha=s.a*vis*(0.6+0.4*tw);
-    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle='#fff';ctx.fill();
-  });
-  ctx.globalAlpha=1;
+function spawnShock(speed,col=[255,255,255],thick=2){
+  shocks.push({born:T,speed,col,thick});
 }
 
-// ── NEUTRON STAR STATE ──
-let starPhase='none'; // none|forming|pulsing|collapsing|exploding
-let starT=0;
-let starScale=0;
-let starRings=[
-  {r:0,speed:1.2,phase:0,tilt:65},
-  {r:0,speed:-0.8,phase:1,tilt:55},
-  {r:0,speed:0.5,phase:2,tilt:45},
-];
-let photonJets=[];
-let shockwaves=[];
-
-function drawNeutronStar(t){
-  if(starPhase==='none')return;
-  const cx=CX(),cy=CY();
-  const age=t-starT;
-
-  // Phase: forming (0-2s) → pulsing (2-4s) → collapsing(4-4.5s) → exploding
-  if(starPhase==='forming'){
-    starScale=Math.min(1,age/2)*Math.min(1,age/2);
-  } else if(starPhase==='pulsing'){
-    starScale=1+0.06*Math.sin(age*8);
-  } else if(starPhase==='collapsing'){
-    starScale=1-Math.pow(age/0.5,2)*0.95;
-    if(starScale<0.05)starScale=0.05;
-  }
-
-  const rs=starScale;
-  const baseR=Math.min(canvas.width,canvas.height)*0.045*rs;
-
-  if(starPhase==='collapsing'||starPhase==='pulsing'||starPhase==='forming'){
-    // Glow layers
-    [120,80,50,30].forEach((r,i)=>{
-      const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,baseR*(r/30));
-      const alph=[0.08,0.12,0.2,0.5][i];
-      gr.addColorStop(0,`rgba(255,255,255,${alph})`);
-      gr.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.beginPath();ctx.arc(cx,cy,baseR*(r/30),0,Math.PI*2);
-      ctx.fillStyle=gr;ctx.fill();
-    });
-    // Core
-    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,baseR);
-    cg.addColorStop(0,'#ffffff');
-    cg.addColorStop(0.3,'#ddddff');
-    cg.addColorStop(0.6,'#aaaacc');
-    cg.addColorStop(1,'rgba(80,80,120,0)');
-    ctx.beginPath();ctx.arc(cx,cy,baseR,0,Math.PI*2);
-    ctx.fillStyle=cg;ctx.fill();
-
-    // Orbital rings
-    starRings.forEach(ring=>{
-      ring.r=baseR*2.2;
-      ring.phase+=ring.speed*0.016;
-      ctx.save();
-      ctx.translate(cx,cy);
-      ctx.rotate(ring.phase);
-      ctx.scale(1,Math.sin(ring.tilt*Math.PI/180));
-      ctx.beginPath();ctx.arc(0,0,ring.r,0,Math.PI*2);
-      ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;ctx.stroke();
-      ctx.restore();
-    });
-
-    // Photon jets (poles)
-    if(starPhase==='pulsing'&&Math.random()<0.3){
-      for(let i=0;i<2;i++){
-        const dir=i===0?-1:1;
-        particles.push(new P(
-          cx+(Math.random()-0.5)*baseR*0.4,
-          cy,
-          (Math.random()-0.5)*0.3*60,
-          dir*(2+Math.random()*4)*60,
-          0.8+Math.random()*0.5,
-          1.5,
-          200,220,255,1,0
-        ));
-      }
-    }
-  }
-
-  // Shockwaves
-  shockwaves=shockwaves.filter(sw=>{
-    const age2=t-sw.born;
-    const maxR=Math.max(canvas.width,canvas.height)*0.8;
-    const r=age2*sw.speed;
+function drawShocks(){
+  shocks=shocks.filter(s=>{
+    const age=T-s.born;
+    const r=age*s.speed;
+    const maxR=Math.sqrt(W()*W()+H()*H());
     const a=Math.max(0,1-r/maxR);
-    if(a<=0)return false;
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(255,255,255,${a*0.7})`;
-    ctx.lineWidth=2-1.5*(r/maxR);
+    if(a<=0.01)return false;
+    ctx.beginPath();
+    ctx.arc(W()/2,H()/2,r,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${s.col[0]},${s.col[1]},${s.col[2]},${a*0.8})`;
+    ctx.lineWidth=s.thick*(1-r/maxR)+0.5;
     ctx.stroke();
     return true;
   });
 }
 
-// ── MATRIX RAIN ──
-let matrixActive=false;
-let matrixCols=[];
-const MCHARS='アイウエオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOP01234567890アXWARE';
+// ═══════════════════════════════════════════════════════════
+//  NEUTRON STAR
+// ═══════════════════════════════════════════════════════════
+let nstar={
+  phase:'none',// none|forming|pulsing|collapse|dead
+  t0:0,scale:0,pulseT:0,
+  rings:[
+    {r:0,sp:1.4,ph:0,tilt:68,col:[200,220,255]},
+    {r:0,sp:-0.9,ph:2.1,tilt:50,col:[255,200,200]},
+    {r:0,sp:0.6,ph:4.2,tilt:40,col:[200,255,220]},
+  ],
+  jetT:0,xrayT:0
+};
+
+function drawNeutronStar(T){
+  if(nstar.phase==='none'||nstar.phase==='dead')return;
+  const cx=W()/2,cy=H()/2;
+  const age=T-nstar.t0;
+
+  if(nstar.phase==='forming'){
+    nstar.scale=Math.pow(Math.min(1,age/3),0.5);
+  } else if(nstar.phase==='pulsing'){
+    const pulse=Math.sin(age*9)*0.08;
+    nstar.scale=1+pulse;
+    // Spawn jet particles
+    if(T-nstar.jetT>0.05){
+      nstar.jetT=T;
+      for(let d=0;d<2;d++){
+        const dir=d===0?-1:1;
+        for(let j=0;j<3;j++){
+          parts.push(new Particle(
+            cx+rnd(-4,4),cy,
+            rnd(-15,15),dir*rnd(180,340),
+            0.6+Math.random()*0.8,
+            1+Math.random()*1.5,
+            180,210,255,0.9,0,0.95,true
+          ));
+        }
+      }
+    }
+    // X-ray bursts
+    if(T-nstar.xrayT>rnd(0.4,1.2)){
+      nstar.xrayT=T;
+      const baseR=Math.min(W(),H())*0.042;
+      for(let i=0;i<30;i++){
+        const a=Math.random()*Math.PI*2;
+        const spd=rnd(60,180);
+        parts.push(new Particle(
+          cx,cy,Math.cos(a)*spd,Math.sin(a)*spd,
+          0.4+Math.random()*0.5,rnd(0.5,1.5),
+          220,240,255,0.7,0,0.9,true
+        ));
+      }
+      osc(rnd(200,400),'sine',0.1,0.02);
+    }
+  } else if(nstar.phase==='collapse'){
+    nstar.scale=Math.max(0.02,1-Math.pow(age/0.7,2)*0.98);
+  }
+
+  const baseR=Math.min(W(),H())*0.042*nstar.scale;
+
+  // Glow halos
+  [[200,0.06],[100,0.1],[60,0.18],[30,0.4],[15,0.7]].forEach(([rm,a])=>{
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,baseR*(rm/15));
+    grd.addColorStop(0,`rgba(255,255,255,${a})`);
+    grd.addColorStop(0.5,`rgba(220,230,255,${a*0.4})`);
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(cx,cy,baseR*(rm/15),0,Math.PI*2);
+    ctx.fillStyle=grd;ctx.fill();
+  });
+
+  // Core surface
+  const cg=ctx.createRadialGradient(cx-baseR*0.3,cy-baseR*0.3,0,cx,cy,baseR);
+  cg.addColorStop(0,'#ffffff');
+  cg.addColorStop(0.2,'#e8eeff');
+  cg.addColorStop(0.5,'#b0c0e0');
+  cg.addColorStop(0.8,'#606080');
+  cg.addColorStop(1,'rgba(40,40,60,0)');
+  ctx.beginPath();ctx.arc(cx,cy,baseR,0,Math.PI*2);
+  ctx.fillStyle=cg;ctx.fill();
+
+  // Accretion disk
+  if(nstar.phase==='pulsing'||nstar.phase==='forming'){
+    const diskR=baseR*3.5;
+    nstar.rings.forEach(ring=>{
+      ring.ph+=ring.sp*0.016;
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(ring.ph);
+      ctx.scale(1,Math.sin(ring.tilt*Math.PI/180));
+      const dg=ctx.createRadialGradient(0,0,diskR*0.6,0,0,diskR);
+      dg.addColorStop(0,`rgba(${ring.col[0]},${ring.col[1]},${ring.col[2]},0.22)`);
+      dg.addColorStop(0.5,`rgba(${ring.col[0]},${ring.col[1]},${ring.col[2]},0.1)`);
+      dg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(0,0,diskR,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(${ring.col[0]},${ring.col[1]},${ring.col[2]},0.15)`;
+      ctx.lineWidth=2;ctx.stroke();
+      ctx.restore();
+    });
+
+    // Magnetosphere field lines
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      const ctrl1x=cx+Math.cos(a+Math.PI/4)*baseR*2.5;
+      const ctrl1y=cy+Math.sin(a+Math.PI/4)*baseR*2.5;
+      const ex=cx+Math.cos(a)*baseR*4;
+      const ey=cy+Math.sin(a)*baseR*4;
+      ctx.quadraticCurveTo(ctrl1x,ctrl1y,ex,ey);
+      ctx.strokeStyle=`rgba(100,160,255,${0.06+0.04*Math.sin(T*3+i)})`;
+      ctx.lineWidth=0.8;ctx.stroke();
+    }
+  }
+
+  // Gravitational lensing effect (warp stars near the star)
+  // (done via subtle distortion of nearby star positions - handled in star draw offset)
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MATRIX RAIN
+// ═══════════════════════════════════════════════════════════
+let matCols=[], matActive=false, matOpacity=0;
+const MCHARS='アイウエオカキクケコ0123456789ABCDEFAXWARE!@#$%^&*';
 
 function initMatrix(){
-  const cols=Math.floor(mCanvas.width/14);
-  matrixCols=Array.from({length:cols},(_,i)=>({
-    x:i*14+7,y:-(Math.random()*mCanvas.height),speed:60+Math.random()*120,
-    chars:Array.from({length:30},()=>MCHARS[Math.floor(Math.random()*MCHARS.length)])
+  const cols=Math.floor(W()/13);
+  matCols=Array.from({length:cols},(_,i)=>({
+    x:i*13+6,y:-(Math.random()*H()),
+    sp:rnd(60,140),
+    chars:Array.from({length:35},()=>MCHARS[Math.floor(Math.random()*MCHARS.length)])
   }));
 }
 initMatrix();
 
 function drawMatrix(dt){
-  if(!matrixActive)return;
-  mCtx.fillStyle='rgba(0,0,0,0.08)';
-  mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
-  mCtx.font='12px "Share Tech Mono"';
-  matrixCols.forEach(col=>{
-    col.y+=col.speed*dt;
-    if(col.y>mCanvas.height+200)col.y=-100;
+  if(matOpacity<=0)return;
+  fxCtx.save();fxCtx.globalAlpha=matOpacity*0.3;
+  fxCtx.fillStyle='rgba(0,0,0,0.1)';fxCtx.fillRect(0,0,W(),H());
+  fxCtx.font='11px "Share Tech Mono"';
+  matCols.forEach(col=>{
+    col.y+=col.sp*dt;
+    if(col.y>H()+250)col.y=-100;
     col.chars.forEach((ch,i)=>{
-      const y=col.y-i*14;
-      if(y<0||y>mCanvas.height)return;
-      const bright=1-i/col.chars.length;
-      mCtx.fillStyle=i===0?`rgba(255,255,255,${bright})`:`rgba(100,180,100,${bright*0.6})`;
-      mCtx.fillText(ch,col.x,y);
-      if(Math.random()<0.01)col.chars[i]=MCHARS[Math.floor(Math.random()*MCHARS.length)];
+      const y=col.y-i*13;
+      if(y<-13||y>H())return;
+      const br=1-i/col.chars.length;
+      fxCtx.globalAlpha=matOpacity*br*0.6;
+      fxCtx.fillStyle=i===0?`rgba(255,255,255,${br})`:`rgba(80,200,80,${br*0.7})`;
+      fxCtx.fillText(ch,col.x,y);
+      if(Math.random()<0.008)col.chars[i]=MCHARS[Math.floor(Math.random()*MCHARS.length)];
     });
   });
+  fxCtx.restore();
 }
 
-// ── TYPING ENGINE ──
-function typeHTMLInto(el, htmlStr, speed, onDone){
-  const tmp=document.createElement('div');
-  tmp.innerHTML=htmlStr;
-  const plain=tmp.textContent;
-  let i=0;
-  const curEl=document.getElementById('code-cursor');
-  function tick(){
-    if(i>=plain.length){
-      el.innerHTML=htmlStr;
-      if(curEl)curEl.style.display='none';
-      if(onDone)onDone();
-      return;
+// ═══════════════════════════════════════════════════════════
+//  CIRCUIT BOARD ANIMATION
+// ═══════════════════════════════════════════════════════════
+let circuits=[], circuitOpacity=0;
+function spawnCircuits(){
+  circuits=[];
+  const cx=W()/2,cy=H()/2;
+  for(let i=0;i<40;i++){
+    const a=Math.random()*Math.PI*2;
+    const startDist=rnd(60,120);
+    const segments=Math.floor(rnd(3,7));
+    const speed=rnd(60,160);
+    let segs=[];
+    let x=cx+Math.cos(a)*startDist;
+    let y=cy+Math.sin(a)*startDist;
+    let dir=a;
+    for(let j=0;j<segments;j++){
+      dir+=rnd(-Math.PI/3,Math.PI/3);
+      const len=rnd(30,120);
+      segs.push({x1:x,y1:y,x2:x+Math.cos(dir)*len,y2:y+Math.sin(dir)*len});
+      x+=Math.cos(dir)*len;y+=Math.sin(dir)*len;
     }
-    el.innerHTML=sliceHTML(htmlStr,i+1);
-    click();
+    circuits.push({segs,progress:0,speed,born:rnd(0,1.5),alive:true,
+      col:`rgba(${Math.floor(rnd(50,120))},${Math.floor(rnd(150,255))},${Math.floor(rnd(100,200))},`});
+  }
+}
+
+function drawCircuits(dt){
+  if(circuitOpacity<=0)return;
+  cirCtx.clearRect(0,0,W(),H());
+  cirCtx.save();cirCtx.globalAlpha=circuitOpacity;
+  circuits.forEach(c=>{
+    if(!c.alive)return;
+    c.progress+=c.speed*dt/100;
+    let totalLen=0;
+    const lens=c.segs.map(s=>Math.hypot(s.x2-s.x1,s.y2-s.y1));
+    lens.forEach(l=>totalLen+=l);
+    const drawn=c.progress*totalLen;
+    let rem=drawn;
+    c.segs.forEach((seg,i)=>{
+      if(rem<=0)return;
+      const l=lens[i];
+      const t=Math.min(1,rem/l);
+      const ex=lerp(seg.x1,seg.x2,t);
+      const ey=lerp(seg.y1,seg.y2,t);
+      cirCtx.beginPath();cirCtx.moveTo(seg.x1,seg.y1);cirCtx.lineTo(ex,ey);
+      cirCtx.strokeStyle=c.col+'0.4)';cirCtx.lineWidth=0.8;cirCtx.stroke();
+      // Dot at tip
+      if(i===Math.min(Math.floor(c.progress*c.segs.length),c.segs.length-1)){
+        cirCtx.beginPath();cirCtx.arc(ex,ey,2,0,Math.PI*2);
+        cirCtx.fillStyle=c.col+'0.9)';cirCtx.fill();
+      }
+      rem-=l;
+    });
+    if(c.progress>=1)c.alive=false;
+  });
+  // Respawn dead circuits
+  circuits.forEach((c,i)=>{
+    if(!c.alive){
+      setTimeout(()=>{
+        const a=Math.random()*Math.PI*2;
+        const cx2=W()/2,cy2=H()/2;
+        const startDist=rnd(60,140);
+        const segments=Math.floor(rnd(2,5));
+        let segs=[],x=cx2+Math.cos(a)*startDist,y=cy2+Math.sin(a)*startDist,dir=a;
+        for(let j=0;j<segments;j++){
+          dir+=rnd(-Math.PI/3,Math.PI/3);
+          const len=rnd(25,100);
+          segs.push({x1:x,y1:y,x2:x+Math.cos(dir)*len,y2:y+Math.sin(dir)*len});
+          x+=Math.cos(dir)*len;y+=Math.sin(dir)*len;
+        }
+        c.segs=segs;c.progress=0;c.speed=rnd(60,160);c.alive=true;
+      },rnd(0,500));
+    }
+  });
+  cirCtx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HEX READOUT
+// ═══════════════════════════════════════════════════════════
+function updateHex(){
+  const lines=Array.from({length:18},()=>'0x'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0').toUpperCase());
+  $('hexL').textContent=lines.slice(0,9).join('\n');
+  $('hexR').textContent=lines.slice(9).join('\n');
+}
+let hexInterval;
+
+// ═══════════════════════════════════════════════════════════
+//  DOM HELPERS
+// ═══════════════════════════════════════════════════════════
+function flash(dur=200,col='w'){
+  const el=col==='w'?$('flash'):$('redflash');
+  el.style.transition='none';el.style.opacity='0.95';
+  setTimeout(()=>{el.style.transition=`opacity ${dur}ms ease`;el.style.opacity='0';},20);
+}
+function shakeDOM(intense=1){
+  const el=document.body;
+  const kf=[
+    {transform:'translate(0,0)'},
+    {transform:`translate(${-8*intense}px,${5*intense}px)`},
+    {transform:`translate(${7*intense}px,${-6*intense}px)`},
+    {transform:`translate(${-5*intense}px,${8*intense}px)`},
+    {transform:`translate(${9*intense}px,${-4*intense}px)`},
+    {transform:`translate(${-6*intense}px,${5*intense}px)`},
+    {transform:'translate(0,0)'}
+  ];
+  el.animate(kf,{duration:400,easing:'ease-in-out'});
+}
+function glitch(el){
+  el.classList.add('glitching');
+  setTimeout(()=>el.classList.remove('glitching'),700);
+}
+function setStatus(txt,visible=true){
+  $('status').textContent=txt;
+  $('status').style.opacity=visible?'1':'0';
+}
+function brackets(show){
+  ['bTL','bTR','bBL','bBR'].forEach(id=>$(id).classList.toggle('show',show));
+}
+function letterbox(size){
+  $('lbox-t').style.height=size+'px';
+  $('lbox-b').style.height=size+'px';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TYPING ENGINE
+// ═══════════════════════════════════════════════════════════
+function typeText(el,text,speed,onDone,curEl){
+  let i=0;
+  function tick(){
+    if(i>=text.length){
+      if(curEl)curEl.style.display='none';
+      if(onDone)onDone();return;
+    }
+    el.textContent+=text[i];
+    click(0.03+Math.random()*0.02);
     i++;
-    const ch=plain[i-1];
-    const d=ch==='\n'?speed*4:ch===' '?speed*0.3:speed+Math.random()*speed*0.7;
+    const ch=text[i-1];
+    const d='.!?'.includes(ch)?speed*5:',;'.includes(ch)?speed*2.5:' '===ch?speed*0.4:speed+Math.random()*speed*0.8;
     setTimeout(tick,d);
   }
   tick();
 }
+
 function sliceHTML(html,n){
-  let cnt=0,res='',inTag=false;
+  let cnt=0,res='',tag=false;
   for(let c of html){
-    if(c==='<')inTag=true;
-    if(inTag){res+=c;if(c==='>')inTag=false;continue;}
+    if(c==='<')tag=true;
+    if(tag){res+=c;if(c==='>')tag=false;continue;}
     if(cnt>=n)break;
     res+=c;cnt++;
   }
   return res;
 }
-function typeText(el,text,speed,onDone){
+function plainLen(html){
+  const d=document.createElement('div');d.innerHTML=html;return d.textContent.length;
+}
+function typeHTML(el,html,speed,onDone,curEl){
+  const total=plainLen(html);
   let i=0;
   function tick(){
-    if(i>=text.length){if(onDone)onDone();return;}
-    el.textContent+=text[i];
-    click();
+    if(i>=total){
+      el.innerHTML=html;
+      if(curEl)curEl.style.display='none';
+      if(onDone)onDone();return;
+    }
+    el.innerHTML=sliceHTML(html,i+1);
+    click(0.02+Math.random()*0.02);
     i++;
-    const ch=text[i-1];
-    const d=ch==='.'||ch===','?speed*3:ch===' '?speed*0.4:speed+Math.random()*speed*0.8;
+    const fakeChar=el.textContent.slice(-1)||' ';
+    const d=fakeChar==='\n'?speed*5:' '===fakeChar?speed*0.3:speed+Math.random()*speed*0.7;
     setTimeout(tick,d);
   }
   tick();
 }
 
-// ═══════════════════════════════════════════
-//  ELEMENT REFS
-// ═══════════════════════════════════════════
-const $=id=>document.getElementById(id);
-const logo=$('logo');
-const taglineDiv=$('tagline');
-const codeWrap=$('codeWrap');
-const codeEl=$('code');
-const dateLine=$('dateLine');
-const creditEl=$('credit');
-const divider=$('divider');
-const statusBar=$('statusBar');
-const progressBar=$('progressBar');
-const scanlines=$('scanlines');
-const vignette=$('vignette');
-const flashEl=$('flash');
-const redflashEl=$('redflash');
+// ═══════════════════════════════════════════════════════════
+//  CONTENT
+// ═══════════════════════════════════════════════════════════
+const TAGLINE='AXWare  THE FUTURE,  OF THE  STEAL A BRAINROT  LOGGER COMMUNITY.';
 
-function showBrackets(){['bTL','bTR','bBL','bBR'].forEach(id=>$(id).style.opacity='1');}
-function flash(dur=200,col='#fff'){
-  const el=col==='#fff'?flashEl:redflashEl;
-  el.style.transition='none';el.style.opacity='1';
-  setTimeout(()=>{el.style.transition=`opacity ${dur}ms ease`;el.style.opacity='0';},30);
+const LUA=
+`<span class="cm">-- ═══════════════════════════════════════════════════
+-- AXWare Engine  v1.0.0-FUTURE
+-- Steal A Brainrot  Enhanced Framework
+-- Author  : Aris / MXWARE
+-- Date    : April 2nd — The Day Everything Changed
+-- ═══════════════════════════════════════════════════</span>
+
+<span class="kw">local</span> AXWare <span class="op">=</span> {
+    Version  <span class="op">=</span> <span class="st">"1.0.0-FUTURE"</span>,
+    Author   <span class="op">=</span> <span class="st">"Aris"</span>,
+    Org      <span class="op">=</span> <span class="st">"MXWARE"</span>,
+    Build    <span class="op">=</span> <span class="nu">os.time</span>(),
 }
-function shake(){
-  document.body.classList.add('shake');
-  setTimeout(()=>document.body.classList.remove('shake'),450);
-}
-function setStatus(txt){statusBar.textContent=txt;}
-function glitch(el){el.classList.add('glitch-active');setTimeout(()=>el.classList.remove('glitch-active'),500);}
-
-// ═══════════════════════════════════════════
-//  SCENE CONTENT
-// ═══════════════════════════════════════════
-const TAGLINE_TEXT='AXWare THE FUTURE, OF THE STEAL A BRAINROT LOGGER COMMUNITY.';
-
-const LUA_HTML=
-`<span class="cm">-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- AXWare Core Engine  v1.0.0-FUTURE
--- Framework: Steal A Brainrot  Enhanced
--- Author: Aris / MXWARE
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-
-<span class="kw">local</span> AXWare <span class="op">=</span> { Version <span class="op">=</span> <span class="st">"1.0.0-FUTURE"</span> }
 
 <span class="kw">local</span> Svc <span class="op">=</span> {
     Players  <span class="op">=</span> game:GetService(<span class="st">"Players"</span>),
     Run      <span class="op">=</span> game:GetService(<span class="st">"RunService"</span>),
     Tween    <span class="op">=</span> game:GetService(<span class="st">"TweenService"</span>),
-    Http     <span class="op">=</span> game:GetService(<span class="st">"HttpService"</span>),
+    Input    <span class="op">=</span> game:GetService(<span class="st">"UserInputService"</span>),
 }
 
 <span class="kw">function</span> AXWare:<span class="fn">Boot</span>()
     <span class="kw">local</span> lp <span class="op">=</span> Svc.Players.LocalPlayer
-    <span class="fn">print</span>(<span class="st">"[AXWare] Initializing → "</span> .. lp.Name)
+    <span class="fn">warn</span>(<span class="st">"[AXWare] Online → "</span> .. lp.Name)
     <span class="kw">return</span> <span class="nu">self</span>:<span class="fn">LoadModules</span>()
 <span class="kw">end</span>
 
 <span class="kw">return</span> AXWare:<span class="fn">Boot</span>()`;
 
-const DATE_TEXT='"Be Aware, April 2nd, AXWare will change the future."';
+const DATE_MSG='"Be Aware, April 2nd — AXWare will change the future."';
 const CREDIT_HTML='Designed by <em>"Aris"</em> — Founder of MXWARE<br>Changes Steal A Brainrot scripting, <em>forever.</em>';
 
-// ═══════════════════════════════════════════
-//  MASTER TIMELINE
-// ═══════════════════════════════════════════
-const TOTAL=60;
-const timeline=[];
-function at(sec,fn){timeline.push({t:sec,fn,done:false});}
+// ═══════════════════════════════════════════════════════════
+//  LENS FLARE
+// ═══════════════════════════════════════════════════════════
+let lensFlares=[];
+function spawnLensFlare(){
+  lensFlares.push({born:T,life:0.6});
+}
+function drawLensFlares(){
+  lensFlares=lensFlares.filter(lf=>{
+    const age=T-lf.born;
+    const a=Math.max(0,1-age/lf.life);
+    if(a<=0)return false;
+    const cx=W()/2,cy=H()/2;
+    // Main flare
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,W()*0.4);
+    g.addColorStop(0,`rgba(255,255,255,${0.8*a})`);
+    g.addColorStop(0.1,`rgba(220,235,255,${0.3*a})`);
+    g.addColorStop(0.4,`rgba(200,200,255,${0.1*a})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W(),H());
+    // Streaks
+    [0,Math.PI/2].forEach(angle=>{
+      const gg=ctx.createLinearGradient(cx-W()*0.5*Math.cos(angle),cy,cx+W()*0.5*Math.cos(angle),cy);
+      gg.addColorStop(0,'rgba(255,255,255,0)');
+      gg.addColorStop(0.5,`rgba(255,255,255,${0.5*a})`);
+      gg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+      ctx.fillStyle=gg;ctx.fillRect(-W()/2,-2,W(),4);
+      ctx.restore();
+    });
+    return true;
+  });
+}
 
-at(0,()=>{
-  setStatus('AXWARE SYSTEMS — INITIALIZING');
-  statusBar.style.opacity='1';
-  hum(40,0.03);
-});
-
-at(1.5,()=>{
-  // Star starts forming
-  starPhase='forming';starT=T;
-  setStatus('NEUTRON STAR — FORMING');
-});
-
-at(3.5,()=>{
-  starPhase='pulsing';starT=T;
-  hum(60,0.04);
-  setStatus('NEUTRON STAR — CRITICAL MASS REACHED');
-});
-
-at(6.0,()=>{
-  starPhase='collapsing';starT=T;
-  setStatus('NEUTRON STAR — COLLAPSE IMMINENT');
-  // Rapid pulse sound
-  let c=0;const iv=setInterval(()=>{
-    zap();c++;
-    if(c>8)clearInterval(iv);
-  },80);
-});
-
-at(6.6,()=>{
-  // SUPERNOVA
-  starPhase='none';
-  deepBoom();impact();
-  flash(800);shake();
-  // Shockwaves
-  for(let i=0;i<4;i++){
-    setTimeout(()=>{
-      shockwaves.push({born:T,speed:Math.max(canvas.width,canvas.height)*(0.5+i*0.15)});
-    },i*120);
+// ═══════════════════════════════════════════════════════════
+//  PARTICLE LOGO ASSEMBLY
+// ═══════════════════════════════════════════════════════════
+let assemblyParticles=[], assemblyDone=false, assemblyCanvas, assemblyCtx;
+function setupAssembly(){
+  assemblyCanvas=document.createElement('canvas');
+  assemblyCanvas.width=W();assemblyCanvas.height=H();
+  assemblyCtx=assemblyCanvas.getContext('2d');
+  assemblyCtx.font=`900 ${Math.min(W()*0.14,120)}px Orbitron`;
+  assemblyCtx.fillStyle='#fff';
+  assemblyCtx.textAlign='center';
+  assemblyCtx.textBaseline='middle';
+  assemblyCtx.fillText('AXWare',W()/2,H()/2);
+  const imageData=assemblyCtx.getImageData(0,0,W(),H());
+  const data=imageData.data;
+  assemblyParticles=[];
+  for(let y=0;y<H();y+=4){
+    for(let x=0;x<W();x+=4){
+      const idx=(y*W()+x)*4;
+      if(data[idx+3]>128){
+        const startX=rnd(0,W()),startY=rnd(0,H());
+        assemblyParticles.push({
+          tx:x,ty:y,x:startX,y:startY,
+          vx:0,vy:0,progress:0,
+          delay:rnd(0,1),speed:rnd(1.5,4),
+          r:Math.floor(rnd(220,255)),g:Math.floor(rnd(220,255)),b:255
+        });
+      }
+    }
   }
-  // Debris particles
-  const cx=CX(),cy=CY();
+}
+let assemblyT0=0, assemblyActive=false;
+function updateAssembly(dt){
+  if(!assemblyActive)return;
+  const age=T-assemblyT0;
+  let allDone=true;
+  assemblyParticles.forEach(p=>{
+    if(age<p.delay){allDone=false;return;}
+    const t=Math.min(1,(age-p.delay)*p.speed/3);
+    if(t<1)allDone=false;
+    const ease=1-Math.pow(1-t,3);
+    p.x=lerp(p.x,p.tx,ease*dt*5);
+    p.y=lerp(p.y,p.ty,ease*dt*5);
+    ctx.globalAlpha=Math.min(1,t*3);
+    ctx.fillStyle=`rgb(${p.r},${p.g},${p.b})`;
+    ctx.fillRect(p.x,p.y,2,2);
+  });
+  ctx.globalAlpha=1;
+  if(allDone&&!assemblyDone){
+    assemblyDone=true;
+    assemblyActive=false;
+    // Show real logo
+    const logo=$('logo');
+    logo.style.opacity='1';logo.style.transform='scale(1)';
+    setTimeout(()=>{ glitch(logo); electricHum(); },200);
+    setTimeout(()=>{ glitch(logo); },600);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TIMELINE
+// ═══════════════════════════════════════════════════════════
+const TOTAL=120;
+let T=0, lastTS=null;
+const tl=[];
+function at(sec,fn){tl.push({t:sec,fn,done:false});}
+
+// ── ACT 0: COLD OPEN ──
+at(0,()=>{
+  letterbox(0);
+  nebulaOpacity=0;
+  setStatus('');
+});
+at(1,()=>{
+  // Faint drone begins
+  drone(30,8,0.04);
+  nebulaOpacity=0.4;
+  $('vignette').style.opacity='0.6';
+});
+at(3,()=>{
+  // Letterbox cinematic bars slide in
+  letterbox(50);
+  drone(50,6,0.03);
+  setStatus('DEEP SPACE — SECTOR 7 UNCHARTED',true);
+  $('status').style.opacity='0.4';
+});
+
+// ── ACT I: FORMING ──
+at(6,()=>{
+  nstar.phase='forming';nstar.t0=T;
+  nebulaOpacity=0.8;
+  setStatus('ANOMALY DETECTED — NEUTRON STAR FORMING',true);
+  drone(40,5,0.06);
+  osc(60,'sine',4,0.05);
+});
+
+// ── ACT II: PULSING ──
+at(11,()=>{
+  nstar.phase='pulsing';nstar.t0=T;
+  setStatus('MAGNETAR ACTIVITY — CRITICAL FIELD STRENGTH',true);
+  drone(80,4,0.08);
+  chime(440);
+  $('warnBanner').style.opacity='0.6';
+});
+at(14,()=>{ osc(120,'sine',2,0.05);chime(330); });
+at(16,()=>{ drone(100,3,0.1);impact(0.2); });
+
+// ── ACT III: COLLAPSE ──
+at(19,()=>{
+  setStatus('⚠ CRITICAL MASS — COLLAPSE IMMINENT',true);
+  $('warnBanner').style.opacity='1';
+  let c=0;
+  const iv=setInterval(()=>{
+    zap();impact(0.3);
+    flash(100,'w');
+    c++;if(c>6)clearInterval(iv);
+  },180);
+  shakeDOM(0.5);
+});
+at(20.5,()=>{
+  nstar.phase='collapse';nstar.t0=T;
+  drone(25,2,0.2);
+  let c=0;const iv=setInterval(()=>{zap();c++;if(c>12)clearInterval(iv);},80);
+});
+
+// ── ACT IV: SUPERNOVA ──
+at(21.5,()=>{
+  nstar.phase='dead';
+  boom();impact(0.8);shakeDOM(2);
+  flash(600,'w');spawnLensFlare();
+  $('warnBanner').style.opacity='0';
+  setStatus('');
+  // Mega particle explosion
+  const cx=W()/2,cy=H()/2;
+  for(let i=0;i<800;i++){
+    const a=Math.random()*Math.PI*2;
+    const spd=rnd(30,600);
+    const life=rnd(1,4);
+    const hot=Math.random()<0.3;
+    parts.push(new Particle(
+      cx+rnd(-5,5),cy+rnd(-5,5),
+      Math.cos(a)*spd,Math.sin(a)*spd,
+      life,rnd(0.5,hot?4:2),
+      hot?255:rnd(180,255),hot?rnd(100,200):rnd(180,255),
+      hot?rnd(50,100):rnd(200,255),
+      1,hot?0:8,0.94,hot
+    ));
+  }
+  // Shockwaves
+  setTimeout(()=>spawnShock(Math.max(W(),H())*0.7,[255,255,255],3),0);
+  setTimeout(()=>spawnShock(Math.max(W(),H())*0.55,[220,230,255],2),150);
+  setTimeout(()=>spawnShock(Math.max(W(),H())*0.4,[200,210,240],1.5),320);
+  setTimeout(()=>spawnShock(Math.max(W(),H())*0.6,[180,190,220],1),500);
+  nebulaOpacity=0.2;
+  // Camera shake particles
+  for(let i=0;i<30;i++){
+    setTimeout(()=>shakeDOM(0.3),i*40);
+  }
+});
+
+// ── ACT V: DARKNESS ──
+at(24,()=>{
+  nebulaOpacity=0;
+  setStatus('REMNANT FIELD STABILIZING...',true);
+  $('status').style.opacity='0.3';
+  drone(25,6,0.04);
+});
+
+// ── ACT VI: PARTICLE LOGO ASSEMBLY ──
+at(27,()=>{
+  setStatus('AXWARE SIGNATURE DETECTED',true);
+  setupAssembly();
+  assemblyT0=T;assemblyActive=true;
+  chime(660);
+  drone(60,4,0.05);
+});
+
+// ── ACT VII: LOGO REVEAL ──
+at(32,()=>{
+  if(!assemblyDone){
+    assemblyActive=false;assemblyDone=true;
+    const logo=$('logo');
+    logo.style.opacity='1';logo.style.transform='scale(1)';
+  }
+  brackets(true);
+  $('scanlines').style.opacity='1';
+  $('vignette').style.opacity='1';
+  setStatus('AXWARE SYSTEMS — ONLINE',true);
+  electricHum();impact(0.3);
+  // Circuit board
+  spawnCircuits();
+  $('c-circuit').style.opacity='1';
+  circuitOpacity=0.7;
+  hexInterval=setInterval(updateHex,120);
+  $('hexL').style.opacity='1';$('hexR').style.opacity='1';
+  $('logo-sub').style.opacity='1';
+  setTimeout(()=>glitch($('logo')),300);
+  setTimeout(()=>glitch($('logo')),800);
+  drone(80,4,0.08);
+  chime(880);
+});
+
+// ── ACT VIII: TAGLINE ──
+at(38,()=>{
+  const tgDiv=$('tagline');
+  tgDiv.style.opacity='1';
+  const sp=document.createElement('span');sp.id='tg-t';
+  const cur=document.createElement('span');cur.className='cur';
+  tgDiv.appendChild(sp);tgDiv.appendChild(cur);
+  typeText(sp,TAGLINE,42,()=>{
+    cur.style.display='none';
+    drone(60,3,0.04);
+  },cur);
+  drone(70,8,0.04);
+});
+
+// ── ACT IX: DIVIDER + CODE ──
+at(52,()=>{
+  $('divider').style.width='min(720px,92vw)';
+  setTimeout(()=>{
+    const cw=$('codeWrap');
+    cw.style.opacity='1';cw.style.transform='translateY(0)';
+    const cEl=$('code');
+    const cur=document.createElement('span');cur.className='cur-c';
+    cEl.parentElement.appendChild(cur);
+    typeHTML(cEl,LUA,18,()=>{
+      cur.style.display='none';
+      // Matrix rain surge
+      matOpacity=1;matActive=true;
+      setTimeout(()=>{
+        matOpacity=0;matActive=false;
+        fxCtx.clearRect(0,0,W(),H());
+      },3000);
+      setStatus('MODULE LOADED — AXWARE OVERRIDE READY',true);
+    },cur);
+    setStatus('COMPILING AXWare.lua...',true);
+  },400);
+});
+
+// ── ACT X: DATA STORM / SURGE ──
+at(82,()=>{
+  setStatus('⚡ SYSTEM SURGE — OVERRIDE IN PROGRESS',true);
+  for(let i=0;i<8;i++){
+    setTimeout(()=>{
+      zap();glitch($('logo'));
+      flash(80,i%2===0?'w':'r');
+      shakeDOM(0.4+i*0.1);
+      $('codeWrap').style.transform=`translateY(${(Math.random()-0.5)*8}px) skewX(${(Math.random()-0.5)*2}deg)`;
+      setTimeout(()=>$('codeWrap').style.transform='translateY(0)',80);
+    },i*200);
+  }
+  impact(0.6);
+  setTimeout(()=>{
+    boom();spawnShock(Math.max(W(),H())*0.8,[255,80,80],2);
+    flash(300,'r');shakeDOM(1.5);
+  },1800);
+  setTimeout(()=>{
+    setStatus('AXWARE OVERRIDE — COMPLETE',true);
+    chime(1320);chime(1760);
+    glitch($('logo'));
+  },2500);
+});
+
+// ── ACT XI: THE WARNING ──
+at(92,()=>{
+  setStatus('CLASSIFIED TRANSMISSION — INCOMING',true);
+  $('redflash').style.transition='opacity 2s';
+  $('redflash').style.opacity='0.08';
+  $('warnOverlay').style.border='2px solid rgba(255,0,0,0.3)';
+  $('warnOverlay').style.boxShadow='inset 0 0 60px rgba(255,0,0,0.1)';
+  drone(30,10,0.06);osc(40,'sine',8,0.04);
+  $('warnBanner').style.opacity='1';
+  setTimeout(()=>{
+    const dl=$('dateLine');
+    dl.style.opacity='1';
+    dl.style.animation='redPulse 1.2s ease-in-out infinite';
+    const sp=document.createElement('span');sp.id='dt-t';
+    const cur=document.createElement('span');cur.className='cur-r';
+    dl.appendChild(sp);dl.appendChild(cur);
+    typeText(sp,DATE_MSG,52,()=>{
+      cur.style.display='none';
+      impact(0.5);flash(150,'r');
+      setTimeout(()=>{impact(0.5);flash(120,'r');},250);
+      setTimeout(()=>{boom();flash(250,'r');shakeDOM(1.2);},500);
+    },cur);
+  },1000);
+});
+
+// ── ACT XII: LEGACY ──
+at(107,()=>{
+  $('redflash').style.transition='opacity 3s';
+  $('redflash').style.opacity='0';
+  $('warnOverlay').style.border='none';
+  $('warnOverlay').style.boxShadow='none';
+  $('warnBanner').style.opacity='0';
+  circuitOpacity=0.2;
+  clearInterval(hexInterval);
+  $('hexL').style.opacity='0';$('hexR').style.opacity='0';
+  setStatus('MXWARE — THE FUTURE OF SCRIPTING',true);
+  $('status').style.opacity='0.5';
+  chime(660);chime(880);chime(1100);
+  drone(40,8,0.06);
+  const cr=$('credit');
+  cr.style.opacity='1';cr.innerHTML=CREDIT_HTML;
+  // Logo final blazing
+  const logo=$('logo');
+  logo.style.textShadow='0 0 100px rgba(255,255,255,1),0 0 200px rgba(255,255,255,0.6),0 0 400px rgba(255,255,255,0.3)';
+  setTimeout(()=>{
+    logo.style.transition='text-shadow 3s ease';
+    logo.style.textShadow='0 0 60px rgba(255,255,255,0.9),0 0 120px rgba(255,255,255,0.4),0 0 200px rgba(255,255,255,0.15)';
+  },1200);
+  // Final particle burst from logo
+  const cx=W()/2,cy=H()/2-80;
   for(let i=0;i<120;i++){
     const a=Math.random()*Math.PI*2;
-    const spd=40+Math.random()*300;
-    const br=Math.random()*200+55;
-    particles.push(new P(cx,cy,Math.cos(a)*spd,Math.sin(a)*spd,1.5+Math.random()*2,
-      1+Math.random()*2,br,br,br,1,20,true));
+    const spd=rnd(20,120);
+    parts.push(new Particle(
+      cx+rnd(-80,80),cy+rnd(-20,20),
+      Math.cos(a)*spd,Math.sin(a)*spd,
+      2+Math.random()*3,rnd(0.5,1.5),255,255,255,0.8,5,0.97,true
+    ));
   }
-  setStatus('SUPERNOVA EVENT — DETECTED');
+  chime(440);
 });
 
-at(8.5,()=>{
-  // Silence then UI appears
-  statusBar.style.opacity='0';
-  scanlines.style.opacity='1';
-  vignette.style.opacity='1';
-});
-
-at(10,()=>{
-  showBrackets();
-  setStatus('AXWARE SYSTEMS — ONLINE');statusBar.style.opacity='1';
-  // Logo appears
-  logo.style.transition='opacity 0.4s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)';
-  logo.style.opacity='1';logo.style.transform='scale(1)';
-  zap();impact();
-  setTimeout(()=>glitch(logo),300);
-  setTimeout(()=>glitch(logo),700);
-  setTimeout(()=>glitch(logo),1100);
-  hum(80,0.08);
-});
-
-at(12.5,()=>{
-  // Tagline starts typing
-  taglineDiv.style.opacity='1';
-  taglineDiv.innerHTML='<span id="tg-text"></span><span id="tagline-cursor">▌</span>';
-  typeText($('tg-text'),TAGLINE_TEXT,38,()=>{
-    $('tagline-cursor').style.display='none';
-  });
-});
-
-at(18,()=>{
-  // divider
-  divider.style.width='min(700px,92vw)';
-  // Code block
-  setTimeout(()=>{
-    codeWrap.style.opacity='1';codeWrap.style.transform='translateY(0)';
-    const curEl=document.createElement('span');
-    curEl.id='code-cursor';curEl.className='code-cursor';
-    curEl.style.cssText='display:inline-block;width:2px;height:1em;background:#555;vertical-align:middle;margin-left:1px;animation:blink 0.45s step-end infinite;';
-    codeEl.parentElement.appendChild(curEl);
-    typeHTMLInto(codeEl,LUA_HTML,22,()=>{
-      // Matrix rain after code
-      setTimeout(()=>{
-        matrixActive=true;
-        mCanvas.style.opacity='0.3';
-        setTimeout(()=>{
-          matrixActive=false;
-          mCtx.clearRect(0,0,mCanvas.width,mCanvas.height);
-          mCanvas.style.opacity='0';
-        },3500);
-      },400);
-    });
-    setStatus('LOADING AXWare MODULE...');
-  },300);
-});
-
-at(30,()=>{
-  // Surge effects: glitch logo + code block
-  for(let i=0;i<5;i++){
-    setTimeout(()=>{
-      zap();glitch(logo);
-      codeWrap.style.transform=`translateY(${(Math.random()-0.5)*6}px)`;
-      setTimeout(()=>codeWrap.style.transform='translateY(0)',60);
-      flash(150,'#f00');
-    },i*220);
-  }
-  setStatus('SYSTEM SURGE — AXWARE OVERRIDING');
-});
-
-at(33.5,()=>{
-  setStatus('CLASSIFIED MESSAGE — INCOMING');
-  // Red tint
-  redflashEl.style.transition='opacity 0.8s';
-  redflashEl.style.opacity='0.06';
-});
-
-at(35,()=>{
-  // DATE LINE
-  dateLine.style.opacity='1';
-  dateLine.style.animation='redPulse 1.5s ease-in-out infinite';
-  dateLine.innerHTML='<span id="dt-text"></span><span id="date-cursor">▌</span>';
-  impact();
-  typeText($('dt-text'),DATE_TEXT,48,()=>{
-    $('date-cursor').style.display='none';
-    // Slam effect
-    for(let i=0;i<3;i++)setTimeout(()=>{flash(120,'#f00');impact();},i*200);
-  });
-});
-
-at(42,()=>{
-  // Credits
-  redflashEl.style.transition='opacity 1.5s';redflashEl.style.opacity='0';
-  creditEl.style.transition='opacity 1s';creditEl.style.opacity='1';
-  creditEl.innerHTML=CREDIT_HTML;
-  setStatus('MXWARE — CHANGING THE GAME FOREVER');
-  hum(40,0.03);
-});
-
-at(49,()=>{
-  // Outro: fade everything gently, final logo pulse
+// ── ACT XIII: FADE OUT ──
+at(115,()=>{
+  letterbox(0);
+  $('flash').style.background='#000';
+  $('flash').style.transition='opacity 5s ease';
+  $('flash').style.opacity='1';
   setStatus('');
-  logo.style.textShadow='0 0 80px rgba(255,255,255,1),0 0 160px rgba(255,255,255,0.6),0 0 300px rgba(255,255,255,0.2)';
-  setTimeout(()=>{
-    logo.style.transition='text-shadow 2s ease';
-    logo.style.textShadow='0 0 60px rgba(255,255,255,0.8),0 0 120px rgba(255,255,255,0.4)';
-  },800);
+  drone(20,6,0.04);
 });
 
-at(54,()=>{
-  // Fade to black
-  flashEl.style.background='#000';
-  flashEl.style.transition='opacity 5s ease';
-  flashEl.style.opacity='1';
-});
-
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 //  MAIN LOOP
-// ═══════════════════════════════════════════
-let T=0, lastTime=null;
-
-function loop(ts){
-  if(!lastTime)lastTime=ts;
-  const dt=Math.min((ts-lastTime)/1000,0.05);
-  lastTime=ts;
-  T+=dt;
+// ═══════════════════════════════════════════════════════════
+function mainLoop(ts){
+  if(!lastTS)lastTS=ts;
+  const dt=Math.min((ts-lastTS)/1000,0.05);
+  lastTS=ts;T+=dt;
 
   // Tick timeline
-  timeline.forEach(ev=>{if(!ev.done&&T>=ev.t){ev.fn();ev.done=true;}});
+  tl.forEach(ev=>{if(!ev.done&&T>=ev.t){ev.fn();ev.done=true;}});
 
   // Progress bar
-  progressBar.style.width=(Math.min(T/TOTAL,1)*100)+'%';
-  progressBar.style.transition='width 0.1s linear';
+  $('prog').style.width=(clamp(T/TOTAL,0,1)*100)+'%';
 
-  // Clear canvas
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Camera drift
+  camX=Math.sin(T*0.07)*8;camY=Math.cos(T*0.05)*4;
+
+  // Clear
+  ctx.clearRect(0,0,W(),H());
+
+  // Nebula
+  drawNebula(T);
 
   // Stars
   drawStars(T);
@@ -746,19 +1231,34 @@ function loop(ts){
   drawNeutronStar(T);
 
   // Particles
-  particles=particles.filter(p=>{
-    const alive=p.update(dt);
-    if(alive)p.draw(ctx);
-    return alive;
-  });
+  parts=parts.filter(p=>{const a=p.update(dt);if(a)p.draw(ctx);return a;});
+
+  // Shockwaves
+  drawShocks();
+
+  // Lens flares
+  drawLensFlares();
+
+  // Assembly
+  if(assemblyActive)updateAssembly(dt);
 
   // Matrix
   drawMatrix(dt);
 
-  requestAnimationFrame(loop);
+  // Circuits
+  drawCircuits(dt);
+
+  // Chromatic aberration pulse
+  const cIntense=0.02+0.01*Math.sin(T*3);
+  $('chrom').style.opacity=String(cIntense);
+
+  // Nebuala opacity lerp
+  nebCvs.style.opacity='1';
+
+  requestAnimationFrame(mainLoop);
 }
 
-requestAnimationFrame(loop);
+requestAnimationFrame(mainLoop);
 </script>
 </body>
 </html>
